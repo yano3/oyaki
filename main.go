@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/draw"
 	_ "image/gif"
 	"image/jpeg"
 	_ "image/png"
@@ -52,10 +53,23 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	defer orgRes.Body.Close()
 
-	img, _, err := image.Decode(orgRes.Body)
+	img, format, err := image.Decode(orgRes.Body)
 	if err != nil {
 		http.Error(w, "Image decoding failed", http.StatusInternalServerError)
 		return
+	}
+
+	if format == "png" {
+		bg := image.NewUniform(image.White)
+		dstImg := image.NewRGBA(img.Bounds())
+
+		draw.Draw(dstImg, dstImg.Bounds(), bg, image.ZP, draw.Src)
+		draw.Draw(dstImg, dstImg.Bounds(), img, image.ZP, draw.Over)
+
+		if err := jpeg.Encode(w, dstImg, &jpeg.Options{Quality: quality}); err != nil {
+			http.Error(w, "Image transformation failed", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if err := jpeg.Encode(w, img, &jpeg.Options{Quality: quality}); err != nil {
