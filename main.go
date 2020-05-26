@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 )
 
 var client http.Client
@@ -48,6 +49,8 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	defer orgRes.Body.Close()
 
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
 	err = convert(orgRes.Body, w, quality)
 	if err != nil {
 		http.Error(w, "Image onvert failed", http.StatusInternalServerError)
