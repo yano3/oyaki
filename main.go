@@ -51,7 +51,7 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 
 	buf, err := convert(orgRes.Body, quality)
 	if err != nil {
-		http.Error(w, "Image onvert failed", http.StatusInternalServerError)
+		http.Error(w, "Image convert failed", http.StatusInternalServerError)
 		return
 	}
 
