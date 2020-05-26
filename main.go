@@ -51,11 +51,14 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
-	err = convert(orgRes.Body, w, quality)
+	buf, err := convert(orgRes.Body, quality)
 	if err != nil {
 		http.Error(w, "Image onvert failed", http.StatusInternalServerError)
 		return
 	}
+
+	w.Write(buf.Bytes())
+	buf.Reset()
 
 	return
 }
