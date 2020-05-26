@@ -7,6 +7,7 @@ import (
 	_ "image/gif"
 	"image/jpeg"
 	_ "image/png"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -53,10 +54,19 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	defer orgRes.Body.Close()
 
-	img, format, err := image.Decode(orgRes.Body)
+	err = convert(orgRes.Body, w)
 	if err != nil {
-		http.Error(w, "Image decoding failed", http.StatusInternalServerError)
+		http.Error(w, "Image onvert failed", http.StatusInternalServerError)
 		return
+	}
+
+	return
+}
+
+func convert(src io.Reader, w io.Writer) error {
+	img, format, err := image.Decode(src)
+	if err != nil {
+		return err
 	}
 
 	if format == "png" {
@@ -67,15 +77,12 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		draw.Draw(dstImg, dstImg.Bounds(), img, image.ZP, draw.Over)
 
 		if err := jpeg.Encode(w, dstImg, &jpeg.Options{Quality: quality}); err != nil {
-			http.Error(w, "Image transformation failed", http.StatusInternalServerError)
-			return
+			return err
 		}
 	}
 
 	if err := jpeg.Encode(w, img, &jpeg.Options{Quality: quality}); err != nil {
-		http.Error(w, "Image transformation failed", http.StatusInternalServerError)
-		return
+		return err
 	}
-
-	return
+	return nil
 }
