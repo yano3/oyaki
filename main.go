@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -48,6 +49,12 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer orgRes.Body.Close()
+
+	ct := orgRes.Header.Get("Content-Type")
+	if ct != "image/jpeg" {
+		io.Copy(w, orgRes.Body)
+		return
+	}
 
 	buf, err := convert(orgRes.Body, quality)
 	if err != nil {
