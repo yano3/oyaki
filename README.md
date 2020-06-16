@@ -1,3 +1,3 @@
 # oyaki
 
-Dynamic image format and quality transformation proxy.
+Dynamic image quality transformation proxy.
