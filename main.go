@@ -48,6 +48,10 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Get origin failed", http.StatusBadGateway)
 		return
 	}
+	if orgRes.StatusCode != http.StatusOK {
+		http.Error(w, "Get origin failed", http.StatusBadGateway)
+		return
+	}
 	defer orgRes.Body.Close()
 
 	ct := orgRes.Header.Get("Content-Type")
