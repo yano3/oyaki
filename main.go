@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,16 +41,19 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	orgURL, err := url.Parse(orgSrvURL + path)
 	if err != nil {
 		http.Error(w, "Invalid origin URL", http.StatusBadRequest)
+		log.Printf("Invalid origin URL. %v\n", err)
 		return
 	}
 
 	orgRes, err := client.Get(orgURL.String())
 	if err != nil {
 		http.Error(w, "Get origin failed", http.StatusBadGateway)
+		log.Printf("Get origin failed. %v\n", err)
 		return
 	}
 	if orgRes.StatusCode != http.StatusOK {
 		http.Error(w, "Get origin failed", http.StatusBadGateway)
+		log.Printf("Get origin failed. %v\n", orgRes.Status)
 		return
 	}
 	defer orgRes.Body.Close()
@@ -63,6 +67,7 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	buf, err := convert(orgRes.Body, quality)
 	if err != nil {
 		http.Error(w, "Image convert failed", http.StatusInternalServerError)
+		log.Printf("Image convert failed. %v\n", err)
 		return
 	}
 
