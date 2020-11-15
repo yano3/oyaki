@@ -45,7 +45,10 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orgRes, err := client.Get(orgURL.String())
+	req, _ := http.NewRequest("GET", orgURL.String(), nil)
+	req.Header.Set("User-Agent", "oyaki")
+
+	orgRes, err := client.Do(req)
 	if err != nil {
 		http.Error(w, "Get origin failed", http.StatusBadGateway)
 		log.Printf("Get origin failed. %v\n", err)
