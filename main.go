@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -63,7 +63,13 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 
 	ct := orgRes.Header.Get("Content-Type")
 	if ct != "image/jpeg" {
-		io.Copy(w, orgRes.Body)
+		body, err := ioutil.ReadAll(orgRes.Body)
+		if err != nil {
+			http.Error(w, "Read origin body failed", http.StatusInternalServerError)
+			log.Printf("Read origin body failed. %v\n", err)
+			return
+		}
+		w.Write(body)
 		return
 	}
 
