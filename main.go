@@ -72,6 +72,7 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		w.Header().Set("Content-Type", ct)
 		if cl != "" {
 			w.Header().Set("Content-Length", cl)
 		}
