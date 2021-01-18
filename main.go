@@ -62,6 +62,8 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	defer orgRes.Body.Close()
 
 	ct := orgRes.Header.Get("Content-Type")
+	cl := orgRes.Header.Get("Content-Length")
+
 	if ct != "image/jpeg" {
 		body, err := ioutil.ReadAll(orgRes.Body)
 		if err != nil {
@@ -69,6 +71,11 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Read origin body failed. %v\n", err)
 			return
 		}
+
+		if cl != "" {
+			w.Header().Set("Content-Length", cl)
+		}
+
 		w.Write(body)
 		return
 	}
