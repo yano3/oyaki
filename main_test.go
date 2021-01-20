@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +18,6 @@ func TestRoot(t *testing.T) {
 
 func TestProxyJPEG(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(proxy))
-	fmt.Println(ts.URL)
 
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./testdata/oyaki.jpg")
