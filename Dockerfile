@@ -1,11 +1,9 @@
 FROM golang:buster
 
-RUN mkdir -p "${GOPATH}/src/github.com/yano3/oyaki"
-COPY . /go/src/github.com/yano3/oyaki
+WORKDIR /go/src/oyaki
+COPY . /go/src/oyaki
 
-RUN cd ${GOPATH}/src/github.com/yano3/oyaki \
- && go get ./... \
- && go install github.com/yano3/oyaki
+RUN go build -o /go/bin/oyaki
 
 FROM debian:buster-slim
 
@@ -13,14 +11,9 @@ RUN apt-get update && apt-get install --no-install-recommends --no-install-sugge
     ca-certificates \
  \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
- \
- && mkdir -p "/go/bin"
+ && rm -rf /var/lib/apt/lists/*
 
-COPY --from=0 /go/bin/oyaki /go/bin
-
-ENV GOPATH /go
-ENV PATH $GOPATH/bin:$PATH
+COPY --from=0 /go/bin/oyaki /usr/local/bin
 
 EXPOSE 8080
 
