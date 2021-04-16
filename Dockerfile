@@ -1,4 +1,4 @@
-FROM golang:buster
+FROM golang:buster AS build
 
 WORKDIR /go/src/oyaki
 COPY . /go/src/oyaki
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install --no-install-recommends --no-install-sugge
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=0 /go/bin/oyaki /usr/local/bin
+COPY --from=build /go/bin/oyaki /usr/local/bin
 
 EXPOSE 8080
 
