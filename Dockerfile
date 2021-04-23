@@ -3,7 +3,7 @@ FROM golang:1.16-buster AS build
 WORKDIR /go/src/oyaki
 COPY . /go/src/oyaki
 
-RUN go build -o /go/bin/oyaki
+RUN CGO_ENABLED=0 go build -o /go/bin/oyaki
 
 FROM debian:buster-slim
 
