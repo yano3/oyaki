@@ -45,7 +45,12 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, _ := http.NewRequest("GET", orgURL.String(), nil)
+	req, err := http.NewRequest("GET", orgURL.String(), nil)
+	if err != nil {
+		http.Error(w, "Request Failed", http.StatusInternalServerError)
+		log.Printf("Request Failed. %v\n", err)
+		return
+	}
 	req.Header.Set("User-Agent", "oyaki")
 
 	orgRes, err := client.Do(req)
