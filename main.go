@@ -1,13 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -70,19 +72,19 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	cl := orgRes.Header.Get("Content-Length")
 
 	if ct != "image/jpeg" {
-		body, err := ioutil.ReadAll(orgRes.Body)
-		if err != nil {
-			http.Error(w, "Read origin body failed", http.StatusInternalServerError)
-			log.Printf("Read origin body failed. %v\n", err)
-			return
-		}
-
 		w.Header().Set("Content-Type", ct)
 		if cl != "" {
 			w.Header().Set("Content-Length", cl)
 		}
 
-		w.Write(body)
+		_, err := io.Copy(w, orgRes.Body)
+		if err != nil {
+			// ignore already close client.
+			if !errors.Is(err, syscall.EPIPE) {
+				http.Error(w, "Read origin body failed", http.StatusInternalServerError)
+				log.Printf("Read origin body failed. %v\n", err)
+			}
+		}
 		return
 	}
 
@@ -92,13 +94,19 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Image convert failed. %v\n", err)
 		return
 	}
+	defer buf.Reset()
 
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 	w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
 
-	w.Write(buf.Bytes())
-	buf.Reset()
+	if _, err := io.Copy(w, buf); err != nil {
+		// ignore already close client.
+		if !errors.Is(err, syscall.EPIPE) {
+			http.Error(w, "Write responce failed", http.StatusInternalServerError)
+			log.Printf("Write responce  failed. %v\n", err)
+		}
+	}
 
 	return
 }
