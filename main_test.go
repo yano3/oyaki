@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -101,5 +102,54 @@ func TestOriginNotExist(t *testing.T) {
 
 	if res.StatusCode != http.StatusBadGateway {
 		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusBadGateway)
+	}
+}
+
+func BenchmarkProxyJpeg(b *testing.B) {
+	b.ResetTimer()
+	ts := httptest.NewServer(http.HandlerFunc(proxy))
+
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./testdata/oyaki.jpg")
+	}))
+
+	orgSrvURL = origin.URL
+
+	url := ts.URL + "/oyaki.jpg"
+
+	for i := 0; i < b.N; i++ {
+		req, _ := http.NewRequest("GET", url, nil)
+		client := new(http.Client)
+		resp, err := client.Do(req)
+		if err != nil {
+			b.Fatal(err)
+		} else {
+			ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+		}
+	}
+}
+
+func BenchmarkProxyPNG(b *testing.B) {
+	b.ResetTimer()
+	ts := httptest.NewServer(http.HandlerFunc(proxy))
+
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./testdata/corn.png")
+	}))
+
+	orgSrvURL = origin.URL
+	url := ts.URL + "/corn.png"
+
+	for i := 0; i < b.N; i++ {
+		req, _ := http.NewRequest("GET", url, nil)
+		client := new(http.Client)
+		resp, err := client.Do(req)
+		if err != nil {
+			b.Fatal(err)
+		} else {
+			ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+		}
 	}
 }

@@ -4,6 +4,9 @@ deps:
 test: deps
 	go test -v
 
+bench: deps
+	go test -bench . -benchmem -benchtime 5s -count 10
+
 build: deps
 	go build
 
