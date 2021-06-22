@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -16,8 +17,21 @@ import (
 var client http.Client
 var orgSrvURL string
 var quality = 90
+var version = ""
 
 func main() {
+	var withVersion bool
+	flag.BoolVar(&withVersion, "v", false, "show version")
+
+	flag.BoolVar(&withVersion, "version", false, "show version")
+
+	flag.Parse()
+
+	if withVersion {
+		fmt.Println("oyaki version", version)
+		return
+	}
+
 	orgScheme := os.Getenv("OYAKI_ORIGIN_SCHEME")
 	orgHost := os.Getenv("OYAKI_ORIGIN_HOST")
 	if orgScheme == "" {
@@ -29,6 +43,7 @@ func main() {
 		quality, _ = strconv.Atoi(q)
 	}
 
+	log.Printf("starting oyaki version %s\n", version)
 	http.HandleFunc("/", proxy)
 	http.ListenAndServe(":8080", nil)
 }
