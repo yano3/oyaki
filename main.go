@@ -61,12 +61,12 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Get origin failed. %v\n", err)
 		return
 	}
+	defer orgRes.Body.Close()
 	if orgRes.StatusCode != http.StatusOK {
 		http.Error(w, "Get origin failed", http.StatusBadGateway)
 		log.Printf("Get origin failed. %v\n", orgRes.Status)
 		return
 	}
-	defer orgRes.Body.Close()
 
 	ct := orgRes.Header.Get("Content-Type")
 	cl := orgRes.Header.Get("Content-Length")
