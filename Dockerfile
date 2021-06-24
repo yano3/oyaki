@@ -3,11 +3,11 @@ FROM golang:1.16-buster AS build
 WORKDIR /go/src/oyaki
 COPY . /go/src/oyaki
 
-RUN CGO_ENABLED=0 go build -o /go/bin/oyaki
+RUN make build
 
 FROM gcr.io/distroless/static-debian10
 
-COPY --from=build /go/bin/oyaki /
+COPY --from=build /go/src/oyaki/bin/oyaki /
 
 EXPOSE 8080
 
