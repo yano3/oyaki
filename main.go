@@ -70,6 +70,11 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Header.Set("User-Agent", "oyaki")
 
+	xff := r.Header.Get("X-Forwarded-For")
+	if len(xff) > 1 {
+		req.Header.Set("X-Forwarded-For", xff)
+	}
+
 	orgRes, err := client.Do(req)
 	if err != nil {
 		http.Error(w, "Get origin failed", http.StatusBadGateway)
