@@ -26,7 +26,7 @@ func main() {
 	flag.Parse()
 
 	if ver {
-		fmt.Println("oyaki version", version)
+		fmt.Printf("oyaki %s\n", version)
 		return
 	}
 
