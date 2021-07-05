@@ -20,13 +20,12 @@ var quality = 90
 var version = ""
 
 func main() {
-	var withVersion bool
+	var ver bool
 
-	flag.BoolVar(&withVersion, "version", false, "show version")
-
+	flag.BoolVar(&ver, "version", false, "show version")
 	flag.Parse()
 
-	if withVersion {
+	if ver {
 		fmt.Println("oyaki version", version)
 		return
 	}
