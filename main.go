@@ -21,7 +21,6 @@ var version = ""
 
 func main() {
 	var withVersion bool
-	flag.BoolVar(&withVersion, "v", false, "show version")
 
 	flag.BoolVar(&withVersion, "version", false, "show version")
 
