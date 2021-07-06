@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"syscall"
 	"time"
@@ -26,7 +27,7 @@ func main() {
 	flag.Parse()
 
 	if ver {
-		fmt.Printf("oyaki %s\n", version)
+		fmt.Printf("oyaki %s\n", getVersion())
 		return
 	}
 
@@ -127,4 +128,16 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	return
+}
+
+func getVersion() string {
+	if version != "" {
+		return version
+	}
+
+	i, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "dev"
+	}
+	return i.Main.Version
 }
