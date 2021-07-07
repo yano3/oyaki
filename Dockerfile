@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${OYAKI_VERSION}" -o 
 
 FROM gcr.io/distroless/static-debian10
 
-COPY --from=build /go/src/oyaki/bin/oyaki /
+COPY --from=build /go/bin/oyaki /
 
 EXPOSE 8080
 
