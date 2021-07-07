@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"syscall"
 	"time"
@@ -20,15 +21,13 @@ var quality = 90
 var version = ""
 
 func main() {
-	var withVersion bool
-	flag.BoolVar(&withVersion, "v", false, "show version")
+	var ver bool
 
-	flag.BoolVar(&withVersion, "version", false, "show version")
-
+	flag.BoolVar(&ver, "version", false, "show version")
 	flag.Parse()
 
-	if withVersion {
-		fmt.Println("oyaki version", version)
+	if ver {
+		fmt.Printf("oyaki %s\n", getVersion())
 		return
 	}
 
@@ -129,4 +128,16 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	return
+}
+
+func getVersion() string {
+	if version != "" {
+		return version
+	}
+
+	i, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "(unknown)"
+	}
+	return i.Main.Version
 }
