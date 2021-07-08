@@ -42,7 +42,7 @@ func main() {
 		quality, _ = strconv.Atoi(q)
 	}
 
-	log.Printf("starting oyaki version %s\n", version)
+	log.Printf("starting oyaki %s\n", getVersion())
 	http.HandleFunc("/", proxy)
 	http.ListenAndServe(":8080", nil)
 }
