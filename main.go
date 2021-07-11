@@ -126,8 +126,6 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Write responce  failed. %v\n", err)
 		}
 	}
-
-	return
 }
 
 func getVersion() string {
