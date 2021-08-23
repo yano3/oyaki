@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"go.elastic.co/apm/module/apmhttp"
 )
 
 var client http.Client
@@ -44,7 +46,7 @@ func main() {
 
 	log.Printf("starting oyaki %s\n", getVersion())
 	http.HandleFunc("/", proxy)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", apmhttp.Wrap(http.DefaultServeMux))
 }
 
 func proxy(w http.ResponseWriter, r *http.Request) {

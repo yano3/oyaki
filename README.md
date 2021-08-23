@@ -21,3 +21,11 @@ Environment variables bellow are available.
 - `OYAKI_ORIGIN_HOST`: Your origin host. Example: `example.com` (required)
 - `OYAKI_ORIGIN_SCHEME`: Scheme to request to your origin. Default: `https`
 - `OYAKI_QUALITY`: Image quality. Default: `90`
+
+If using [Elastic APM](https://www.elastic.co/jp/apm/), please set the following environment variables.
+
+- `ELASTIC_APM_SERVER_URL`: APM Server URL
+- `ELASTIC_APM_SECRET_TOKEN`: Secret token for authentication. Optional.
+- `ELASTIC_APM_SERVICE_NAME`: The name of service. Default: Use the executable name.
+
+For other options, refer to [Elastic APM's Go Agent Reference](https://www.elastic.co/guide/en/apm/agent/go/current/configuration.html#configuration).
