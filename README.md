@@ -1,6 +1,6 @@
 # oyaki
 
-[![CI](https://github.com/yano3/oyaki/workflows/CI/badge.svg)](https://github.com/yano3/oyaki/actions)
+[![CI](https://github.com/yano3/oyaki/actions/workflows/ci.yml/badge.svg)](https://github.com/yano3/oyaki/actions/workflows/ci.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/yano3/oyaki)](https://hub.docker.com/r/yano3/oyaki)
 
 Dynamic image quality transformation proxy.

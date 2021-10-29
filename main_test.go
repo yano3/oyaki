@@ -17,6 +17,35 @@ func TestRoot(t *testing.T) {
 	}
 }
 
+func TestRequestHeader(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(proxy))
+	defer ts.Close()
+
+	cxff := "127.0.0.1"
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./testdata/oyaki.jpg")
+
+		sxff := r.Header.Get("X-Forwarded-For")
+		if sxff != cxff {
+			t.Errorf("X-Forwarded-For header is %s, want %s", sxff, cxff)
+		}
+	}))
+
+	orgSrvURL = origin.URL
+
+	req, err := http.NewRequest("GET", ts.URL+"/oyaki.jpg", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("X-Forwarded-For", cxff)
+	res, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+}
+
 func TestProxyJPEG(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(proxy))
 

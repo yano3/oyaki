@@ -2,12 +2,14 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"syscall"
 	"time"
@@ -16,8 +18,19 @@ import (
 var client http.Client
 var orgSrvURL string
 var quality = 90
+var version = ""
 
 func main() {
+	var ver bool
+
+	flag.BoolVar(&ver, "version", false, "show version")
+	flag.Parse()
+
+	if ver {
+		fmt.Printf("oyaki %s\n", getVersion())
+		return
+	}
+
 	orgScheme := os.Getenv("OYAKI_ORIGIN_SCHEME")
 	orgHost := os.Getenv("OYAKI_ORIGIN_HOST")
 	if orgScheme == "" {
@@ -29,6 +42,7 @@ func main() {
 		quality, _ = strconv.Atoi(q)
 	}
 
+	log.Printf("starting oyaki %s\n", getVersion())
 	http.HandleFunc("/", proxy)
 	http.ListenAndServe(":8080", nil)
 }
@@ -57,6 +71,11 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 
 	if r.Header.Get("If-Modified-Since") != "" {
 		req.Header.Set("If-Modified-Since", r.Header.Get("If-Modified-Since"))
+  }
+  
+	xff := r.Header.Get("X-Forwarded-For")
+	if len(xff) > 1 {
+		req.Header.Set("X-Forwarded-For", xff)
 	}
 
 	orgRes, err := client.Do(req)
@@ -65,6 +84,8 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Get origin failed. %v\n", err)
 		return
 	}
+  defer orgRes.Body.Close()
+
 	if orgRes.StatusCode == http.StatusNotModified {
 		w.WriteHeader(http.StatusNotModified)
 		return
@@ -75,7 +96,6 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Get origin failed. %v\n", orgRes.Status)
 		return
 	}
-	defer orgRes.Body.Close()
 
 	ct := orgRes.Header.Get("Content-Type")
 	cl := orgRes.Header.Get("Content-Length")
@@ -120,6 +140,16 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Write responce  failed. %v\n", err)
 		}
 	}
+}
 
-	return
+func getVersion() string {
+	if version != "" {
+		return version
+	}
+
+	i, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "(unknown)"
+	}
+	return i.Main.Version
 }

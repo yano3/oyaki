@@ -1,9 +1,11 @@
-FROM golang:1.16-buster AS build
+FROM golang:1.17-buster AS build
+
+ARG OYAKI_VERSION
 
 WORKDIR /go/src/oyaki
 COPY . /go/src/oyaki
 
-RUN CGO_ENABLED=0 go build -o /go/bin/oyaki
+RUN CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${OYAKI_VERSION}" -o /go/bin/oyaki
 
 FROM gcr.io/distroless/static-debian10
 

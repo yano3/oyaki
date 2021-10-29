@@ -8,7 +8,7 @@ bench: deps
 	go test -bench . -benchmem -benchtime 5s -count 10
 
 build: deps
-	go build
+	CGO_ENABLED=0 go build
 
 lint:
 	go vet
