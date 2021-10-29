@@ -50,7 +50,26 @@ func TestProxyJPEG(t *testing.T) {
 		t.Errorf("value of Content-Length header %d is larger than origin's one %d", res.ContentLength, orgRes.ContentLength)
 	}
 }
+func TestProxyNotModified(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(proxy))
 
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}))
+	orgSrvURL = origin.URL
+
+	url := ts.URL + "/corn.png"
+
+	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != http.StatusNotModified {
+		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusNotModified)
+	}
+}
 func TestProxyPNG(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(proxy))
 
