@@ -69,6 +69,10 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Header.Set("User-Agent", "oyaki")
 
+	if r.Header.Get("If-Modified-Since") != "" {
+		req.Header.Set("If-Modified-Since", r.Header.Get("If-Modified-Since"))
+	}
+
 	xff := r.Header.Get("X-Forwarded-For")
 	if len(xff) > 1 {
 		req.Header.Set("X-Forwarded-For", xff)
@@ -81,6 +85,12 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer orgRes.Body.Close()
+
+	if orgRes.StatusCode == http.StatusNotModified {
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
+
 	if orgRes.StatusCode != http.StatusOK {
 		http.Error(w, "Get origin failed", http.StatusBadGateway)
 		log.Printf("Get origin failed. %v\n", orgRes.Status)
@@ -117,7 +127,11 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
-	w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+	if orgRes.Header.Get("Last-Modified") != "" {
+		w.Header().Set("Last-Modified", orgRes.Header.Get("Last-Modified"))
+	} else {
+		w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+	}
 
 	if _, err := io.Copy(w, buf); err != nil {
 		// ignore already close client.
