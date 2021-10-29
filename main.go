@@ -71,8 +71,8 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 
 	if r.Header.Get("If-Modified-Since") != "" {
 		req.Header.Set("If-Modified-Since", r.Header.Get("If-Modified-Since"))
-  }
-  
+	}
+
 	xff := r.Header.Get("X-Forwarded-For")
 	if len(xff) > 1 {
 		req.Header.Set("X-Forwarded-For", xff)
@@ -84,7 +84,7 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Get origin failed. %v\n", err)
 		return
 	}
-  defer orgRes.Body.Close()
+	defer orgRes.Body.Close()
 
 	if orgRes.StatusCode == http.StatusNotModified {
 		w.WriteHeader(http.StatusNotModified)
