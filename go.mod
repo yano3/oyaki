@@ -1,3 +1,3 @@
 module github.com/yano3/oyaki
 
-go 1.17
+go 1.18
