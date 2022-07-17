@@ -1,4 +1,4 @@
-FROM golang:1.18-buster AS build
+FROM golang:1.18-bullseye AS build
 
 ARG OYAKI_VERSION
 
@@ -7,7 +7,7 @@ COPY . /go/src/oyaki
 
 RUN CGO_ENABLED=0 go build -ldflags "-s -w -X main.version=${OYAKI_VERSION}" -o /go/bin/oyaki
 
-FROM gcr.io/distroless/static-debian10
+FROM gcr.io/distroless/static-debian11
 
 COPY --from=build /go/bin/oyaki /
 
