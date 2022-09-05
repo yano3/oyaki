@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -172,7 +172,7 @@ func BenchmarkProxyJpeg(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		} else {
-			ioutil.ReadAll(resp.Body)
+			io.ReadAll(resp.Body)
 			resp.Body.Close()
 		}
 	}
@@ -196,7 +196,7 @@ func BenchmarkProxyPNG(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		} else {
-			ioutil.ReadAll(resp.Body)
+			io.ReadAll(resp.Body)
 			resp.Body.Close()
 		}
 	}
