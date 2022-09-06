@@ -84,7 +84,6 @@ func TestProxyNotModified(t *testing.T) {
 
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotModified)
-		return
 	}))
 	orgSrvURL = origin.URL
 
