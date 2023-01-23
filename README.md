@@ -1,7 +1,6 @@
 # oyaki
 
-[![CI](https://github.com/yano3/oyaki/actions/workflows/ci.yml/badge.svg)](https://github.com/yano3/oyaki/actions/workflows/ci.yml)
-[![Docker Pulls](https://img.shields.io/docker/pulls/yano3/oyaki)](https://hub.docker.com/r/yano3/oyaki)
+[![CI](https://github.com/pepabo/oyaki/actions/workflows/ci.yml/badge.svg)](https://github.com/pepabo/oyaki/actions/workflows/ci.yml)
 
 Dynamic image quality transformation proxy.
 
@@ -10,8 +9,8 @@ Dynamic image quality transformation proxy.
 ### Docker
 
 ```
-docker pull yano3/oyaki:latest
-docker run -p 8080:8080 -e "OYAKI_ORIGIN_HOST=example.com" yano3/oyaki
+docker pull ghcr.io/pepabo/oyaki:latest
+docker run -p 8080:8080 -e "OYAKI_ORIGIN_HOST=example.com" ghcr.io/pepabo/oyaki
 ```
 
 ## Configuration
