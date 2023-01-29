@@ -86,6 +86,12 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 	defer orgRes.Body.Close()
 
+	if orgRes.Header.Get("Last-Modified") != "" {
+		w.Header().Set("Last-Modified", orgRes.Header.Get("Last-Modified"))
+	} else {
+		w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+	}
+
 	if orgRes.StatusCode == http.StatusNotModified {
 		w.WriteHeader(http.StatusNotModified)
 		return
@@ -127,11 +133,6 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "image/jpeg")
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
-	if orgRes.Header.Get("Last-Modified") != "" {
-		w.Header().Set("Last-Modified", orgRes.Header.Get("Last-Modified"))
-	} else {
-		w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
-	}
 
 	if _, err := io.Copy(w, buf); err != nil {
 		// ignore already close client.
