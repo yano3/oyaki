@@ -104,7 +104,7 @@ func TestOriginNotModifiedJPEG(t *testing.T) {
 	}
 
 	if res.StatusCode != http.StatusNotModified {
-		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusOK)
+		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusNotModified)
 	}
 
 	if res.ContentLength < 0 {
@@ -172,10 +172,11 @@ func TestOriginNotModifiedPNG(t *testing.T) {
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Last-Modified", "2023-01-01T00:00:00")
 		w.WriteHeader(http.StatusNotModified)
+		http.ServeFile(w, r, "./testdata/corn.png")
 	}))
 
 	orgSrvURL = origin.URL
-	url := ts.URL + "/notmodified.png"
+	url := ts.URL + "/corn.png"
 
 	res, err := http.Get(url)
 	if err != nil {
@@ -188,7 +189,7 @@ func TestOriginNotModifiedPNG(t *testing.T) {
 	}
 
 	if res.StatusCode != http.StatusNotModified {
-		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusOK)
+		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusNotModified)
 	}
 
 	if res.Header.Get("Last-Modified") == "" {
