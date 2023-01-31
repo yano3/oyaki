@@ -79,17 +79,26 @@ func TestProxyJPEG(t *testing.T) {
 		t.Errorf("value of Content-Length header %d is larger than origin's one %d", res.ContentLength, orgRes.ContentLength)
 	}
 }
-func TestProxyNotModified(t *testing.T) {
+
+func TestOriginNotModifiedJPEG(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(proxy))
 
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Last-Modified", "2023-01-01T00:00:00")
 		w.WriteHeader(http.StatusNotModified)
+		http.ServeFile(w, r, "./testdata/oyaki.jpg")
 	}))
+
 	orgSrvURL = origin.URL
 
-	url := ts.URL + "/corn.png"
+	url := ts.URL + "/oyaki.jpg"
 
 	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = http.Get(orgSrvURL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +106,12 @@ func TestProxyNotModified(t *testing.T) {
 	if res.StatusCode != http.StatusNotModified {
 		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusNotModified)
 	}
+
+	if res.ContentLength < 0 {
+		t.Errorf("Content-Length header does not exist")
+	}
 }
+
 func TestProxyPNG(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(proxy))
 
@@ -149,6 +163,41 @@ func TestOriginNotExist(t *testing.T) {
 
 	if res.StatusCode != http.StatusBadGateway {
 		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusBadGateway)
+	}
+}
+
+func TestOriginNotModifiedPNG(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(proxy))
+
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Last-Modified", "2023-01-01T00:00:00")
+		w.WriteHeader(http.StatusNotModified)
+		http.ServeFile(w, r, "./testdata/corn.png")
+	}))
+
+	orgSrvURL = origin.URL
+	url := ts.URL + "/corn.png"
+
+	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = http.Get(orgSrvURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != http.StatusNotModified {
+		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusNotModified)
+	}
+
+	if res.Header.Get("Last-Modified") == "" {
+		t.Errorf("Not set header")
+	}
+
+	if res.ContentLength < 0 {
+		t.Errorf("Content-Length header does not exist")
 	}
 }
 
