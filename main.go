@@ -77,8 +77,7 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	if len(xff) > 1 {
 		req.Header.Set("X-Forwarded-For", xff)
 	}
-
-	orgRes, err := client.Do(req)
+	orgRes, err := Do(req)
 	if err != nil {
 		http.Error(w, "Get origin failed", http.StatusBadGateway)
 		log.Printf("Get origin failed. %v\n", err)
