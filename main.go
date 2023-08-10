@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strconv"
 	"syscall"
@@ -19,6 +20,7 @@ var client http.Client
 var orgSrvURL string
 var quality = 90
 var version = ""
+var convExtCandidates = []string{".jpg", ".png", ".jpeg"}
 
 func main() {
 	var ver bool
@@ -77,12 +79,47 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	if len(xff) > 1 {
 		req.Header.Set("X-Forwarded-For", xff)
 	}
+	var orgRes *http.Response
+	pathExt := filepath.Ext(req.URL.Path)
+	if pathExt == ".webp" {
+		for _, cExt := range convExtCandidates {
 
-	orgRes, err := client.Do(req)
-	if err != nil {
-		http.Error(w, "Get origin failed", http.StatusBadGateway)
-		log.Printf("Get origin failed. %v\n", err)
-		return
+			newPath := orgURL.Path[:len(orgURL.Path)-len(pathExt)] + cExt
+			newOrgURL, err := url.Parse(fmt.Sprintf("%s://%s%s?%s", orgURL.Scheme, orgURL.Host, newPath, orgURL.RawQuery))
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			newReq, err := http.NewRequest("GET", newOrgURL.String(), nil)
+			newReq.Header = req.Header
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			orgRes, err = client.Do(newReq)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			if orgRes.StatusCode != 200 {
+				log.Println(orgRes.Status)
+				continue
+			} else {
+				break
+			}
+		}
+		if orgRes == nil {
+			http.Error(w, "Get origin failed", http.StatusBadGateway)
+			log.Printf("Get origin failed. %v\n", err)
+			return
+		}
+	} else {
+		orgRes, err = client.Do(req)
+		if err != nil {
+			http.Error(w, "Get origin failed", http.StatusBadGateway)
+			log.Printf("Get origin failed. %v\n", err)
+			return
+		}
 	}
 	defer orgRes.Body.Close()
 
