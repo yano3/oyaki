@@ -59,7 +59,7 @@ func convWebp(src io.Reader, params []string) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	params = append(params, "-quiet", "-mt", f.Name(), "-o", "-")
+	params = append(params, "-quiet", "-mt", "-jpeg_like", f.Name(), "-o", "-")
 	out, err := exec.Command("cwebp", params...).Output()
 	if err != nil {
 		log.Println(err)
