@@ -11,12 +11,13 @@ import (
 	"os/exec"
 )
 
-var convExtCandidates = []string{".jpg", ".png", ".jpeg"}
+// handle .jpg.webp ext first
+var convExtCandidates = []string{"", ".jpg", ".png", ".jpeg"}
 
 func doWebp(req *http.Request) (*http.Response, error) {
 	var orgRes *http.Response
+	orgURL := req.URL
 	for _, cExt := range convExtCandidates {
-		orgURL := req.URL
 		newPath := orgURL.Path[:len(orgURL.Path)-len(".webp")] + cExt
 		newOrgURL, err := url.Parse(fmt.Sprintf("%s://%s%s?%s", orgURL.Scheme, orgURL.Host, newPath, orgURL.RawQuery))
 		if err != nil {
