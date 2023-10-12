@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strconv"
 	"syscall"
@@ -77,12 +78,22 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	if len(xff) > 1 {
 		req.Header.Set("X-Forwarded-For", xff)
 	}
-
-	orgRes, err := client.Do(req)
-	if err != nil {
-		http.Error(w, "Get origin failed", http.StatusBadGateway)
-		log.Printf("Get origin failed. %v\n", err)
-		return
+	var orgRes *http.Response
+	pathExt := filepath.Ext(req.URL.Path)
+	if pathExt == ".webp" {
+		orgRes, err = doWebp(req)
+		if err != nil {
+			http.Error(w, "Get origin failed", http.StatusBadGateway)
+			log.Printf("Get origin failed. %v\n", err)
+			return
+		}
+	} else {
+		orgRes, err = client.Do(req)
+		if err != nil {
+			http.Error(w, "Get origin failed", http.StatusBadGateway)
+			log.Printf("Get origin failed. %v\n", err)
+			return
+		}
 	}
 	defer orgRes.Body.Close()
 
@@ -130,8 +141,18 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer buf.Reset()
+	if pathExt == ".webp" {
+		buf, err = convWebp(buf, []string{})
+		if err != nil {
+			http.Error(w, "image convert failed", http.StatusInternalServerError)
+			log.Printf("Read origin body failed. %v\n", err)
+			return
 
-	w.Header().Set("Content-Type", "image/jpeg")
+		}
+		w.Header().Set("Content-Type", "image/webp")
+	} else {
+		w.Header().Set("Content-Type", "image/jpeg")
+	}
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 
 	if _, err := io.Copy(w, buf); err != nil {
