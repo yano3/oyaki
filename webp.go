@@ -31,7 +31,7 @@ func doWebp(req *http.Request) (*http.Response, error) {
 		log.Println(err)
 		return nil, err
 	}
-	if orgRes.StatusCode != 200 {
+	if orgRes.StatusCode != 200 && orgRes.StatusCode != 304 {
 		log.Println(orgRes.Status)
 		return nil, err
 	}
