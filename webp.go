@@ -11,39 +11,29 @@ import (
 	"os/exec"
 )
 
-// handle .jpg.webp ext first
-var convExtCandidates = []string{"", ".jpg", ".png", ".jpeg"}
-
 func doWebp(req *http.Request) (*http.Response, error) {
 	var orgRes *http.Response
 	orgURL := req.URL
-	for _, cExt := range convExtCandidates {
-		newPath := orgURL.Path[:len(orgURL.Path)-len(".webp")] + cExt
-		newOrgURL, err := url.Parse(fmt.Sprintf("%s://%s%s?%s", orgURL.Scheme, orgURL.Host, newPath, orgURL.RawQuery))
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		newReq, err := http.NewRequest("GET", newOrgURL.String(), nil)
-		newReq.Header = req.Header
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		orgRes, err = client.Do(newReq)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		if orgRes.StatusCode != 200 {
-			log.Println(orgRes.Status)
-			continue
-		} else {
-			break
-		}
+	newPath := orgURL.Path[:len(orgURL.Path)-len(".webp")]
+	newOrgURL, err := url.Parse(fmt.Sprintf("%s://%s%s?%s", orgURL.Scheme, orgURL.Host, newPath, orgURL.RawQuery))
+	if err != nil {
+		log.Println(err)
+		return nil, err
 	}
-	if orgRes == nil {
-		return nil, fmt.Errorf("get origin failed")
+	newReq, err := http.NewRequest("GET", newOrgURL.String(), nil)
+	newReq.Header = req.Header
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	orgRes, err = client.Do(newReq)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if orgRes.StatusCode != 200 {
+		log.Println(orgRes.Status)
+		return nil, err
 	}
 	return orgRes, nil
 }
