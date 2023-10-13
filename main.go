@@ -84,14 +84,14 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	if pathExt == ".webp" {
 		orgRes, err = doWebp(req)
 		if err != nil {
-			http.Error(w, "Get origin failed; 1:", http.StatusBadGateway)
+			http.Error(w, "Get origin failed", http.StatusBadGateway)
 			log.Printf("Get origin failed. %v\n", err)
 			return
 		}
 	} else {
 		orgRes, err = client.Do(req)
 		if err != nil {
-			http.Error(w, "Get origin failed; 2:", http.StatusBadGateway)
+			http.Error(w, "Get origin failed", http.StatusBadGateway)
 			log.Printf("Get origin failed. %v\n", err)
 			return
 		}
@@ -110,7 +110,7 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if orgRes.StatusCode != http.StatusOK {
-		http.Error(w, "Get origin failed; 3:", http.StatusBadGateway)
+		http.Error(w, "Get origin failed", http.StatusBadGateway)
 		log.Printf("Get origin failed. %v\n", orgRes.Status)
 		return
 	}
