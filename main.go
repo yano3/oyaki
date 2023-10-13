@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -133,24 +134,24 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	buf, err := convert(orgRes.Body, quality)
-	if err != nil {
-		http.Error(w, "Image convert failed", http.StatusInternalServerError)
-		log.Printf("Image convert failed. %v\n", err)
-		return
-	}
-	defer buf.Reset()
+	var buf *bytes.Buffer
 	if pathExt == ".webp" {
-		buf, err = convWebp(buf, []string{})
+		buf, err = convWebp(orgRes.Body, []string{})
 		if err != nil {
 			http.Error(w, "image convert failed", http.StatusInternalServerError)
 			log.Printf("Read origin body failed. %v\n", err)
 			return
-
 		}
+		defer buf.Reset()
 		w.Header().Set("Content-Type", "image/webp")
 	} else {
+		buf, err = convert(orgRes.Body, quality)
+		if err != nil {
+			http.Error(w, "Image convert failed", http.StatusInternalServerError)
+			log.Printf("Image convert failed. %v\n", err)
+			return
+		}
+		defer buf.Reset()
 		w.Header().Set("Content-Type", "image/jpeg")
 	}
 	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
