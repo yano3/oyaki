@@ -142,6 +142,7 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Read origin body failed. %v\n", err)
 			return
 		}
+		defer buf.Reset()
 		w.Header().Set("Content-Type", "image/webp")
 	} else {
 		buf, err = convert(orgRes.Body, quality)
