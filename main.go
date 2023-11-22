@@ -147,6 +147,7 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Image convert failed. %v\n", err)
 				return
 			}
+			defer buf.Reset()
 			w.Header().Set("Content-Type", "image/jpeg")
 		}
 	} else {
