@@ -97,7 +97,6 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	defer orgRes.Body.Close()
-
 	if orgRes.Header.Get("Last-Modified") != "" {
 		w.Header().Set("Last-Modified", orgRes.Header.Get("Last-Modified"))
 	} else {
@@ -137,13 +136,20 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	var buf *bytes.Buffer
 	if pathExt == ".webp" {
 		buf, err = convWebp(orgRes.Body, []string{})
-		if err != nil {
-			http.Error(w, "image convert failed", http.StatusInternalServerError)
-			log.Printf("Read origin body failed. %v\n", err)
-			return
-		}
 		defer buf.Reset()
-		w.Header().Set("Content-Type", "image/webp")
+		if err == nil {
+			w.Header().Set("Content-Type", "image/webp")
+		} else {
+			// if err, normally convertion will be proceeded
+			buf, err = convert(orgRes.Body, quality)
+			if err != nil {
+				http.Error(w, "Image convert failed", http.StatusInternalServerError)
+				log.Printf("Image convert failed. %v\n", err)
+				return
+			}
+			defer buf.Reset()
+			w.Header().Set("Content-Type", "image/jpeg")
+		}
 	} else {
 		buf, err = convert(orgRes.Body, quality)
 		if err != nil {
