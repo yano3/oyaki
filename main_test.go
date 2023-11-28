@@ -161,6 +161,27 @@ func TestOriginNotExist(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if res.StatusCode != http.StatusNotFound {
+		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusNotFound)
+	}
+}
+
+func TestOriginBadGateWay(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(proxy))
+
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "502 Bad Gateway", http.StatusBadGateway)
+	}))
+
+	orgSrvURL = origin.URL
+
+	url := ts.URL + "/bad.jpg"
+
+	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if res.StatusCode != http.StatusBadGateway {
 		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusBadGateway)
 	}
