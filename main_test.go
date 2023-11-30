@@ -166,6 +166,27 @@ func TestOriginNotExist(t *testing.T) {
 	}
 }
 
+func TestOriginForbidden(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(proxy))
+
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "403 Forbidden", http.StatusForbidden)
+	}))
+
+	orgSrvURL = origin.URL
+
+	url := ts.URL + "/forbidden.jpg"
+
+	res, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != http.StatusForbidden {
+		t.Errorf("HTTP status is %d, want %d", res.StatusCode, http.StatusNotFound)
+	}
+}
+
 func TestOriginBadGateWay(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(proxy))
 
