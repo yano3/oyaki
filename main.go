@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strconv"
 	"syscall"
@@ -77,14 +79,26 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 	if len(xff) > 1 {
 		req.Header.Set("X-Forwarded-For", xff)
 	}
+	var orgRes *http.Response
+	pathExt := filepath.Ext(req.URL.Path)
+	if pathExt == ".webp" {
+		orgRes, err = doWebp(req)
+	} else {
+		orgRes, err = client.Do(req)
+	}
 
-	orgRes, err := client.Do(req)
-	if err != nil {
-		http.Error(w, "Get origin failed", http.StatusBadGateway)
+	if err != nil || orgRes.StatusCode == http.StatusNotFound {
+		http.Error(w, "Get origin failed", orgRes.StatusCode)
 		log.Printf("Get origin failed. %v\n", err)
 		return
 	}
+
 	defer orgRes.Body.Close()
+	if orgRes.Header.Get("Last-Modified") != "" {
+		w.Header().Set("Last-Modified", orgRes.Header.Get("Last-Modified"))
+	} else {
+		w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+	}
 
 	if orgRes.StatusCode == http.StatusNotModified {
 		w.WriteHeader(http.StatusNotModified)
@@ -116,22 +130,45 @@ func proxy(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	var buf *bytes.Buffer
+	if pathExt == ".webp" {
+		resBytes, err := io.ReadAll(orgRes.Body)
+		if err != nil {
+			http.Error(w, "Read origin body failed", http.StatusInternalServerError)
+			log.Printf("Read origin body failed. %v\n", err)
+			return
+		}
 
-	buf, err := convert(orgRes.Body, quality)
-	if err != nil {
-		http.Error(w, "Image convert failed", http.StatusInternalServerError)
-		log.Printf("Image convert failed. %v\n", err)
-		return
-	}
-	defer buf.Reset()
-
-	w.Header().Set("Content-Type", "image/jpeg")
-	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
-	if orgRes.Header.Get("Last-Modified") != "" {
-		w.Header().Set("Last-Modified", orgRes.Header.Get("Last-Modified"))
+		body := io.NopCloser(bytes.NewBuffer(resBytes))
+		defer body.Close()
+		buf, err = convWebp(body, []string{})
+		if err == nil {
+			defer buf.Reset()
+			w.Header().Set("Content-Type", "image/webp")
+		} else {
+			// if err, normally convertion will be proceeded
+			body = io.NopCloser(bytes.NewBuffer(resBytes))
+			defer body.Close()
+			buf, err = convert(body, quality)
+			if err != nil {
+				http.Error(w, "Image convert failed", http.StatusInternalServerError)
+				log.Printf("Image convert failed. %v\n", err)
+				return
+			}
+			defer buf.Reset()
+			w.Header().Set("Content-Type", "image/jpeg")
+		}
 	} else {
-		w.Header().Set("Last-Modified", time.Now().UTC().Format(http.TimeFormat))
+		buf, err = convert(orgRes.Body, quality)
+		if err != nil {
+			http.Error(w, "Image convert failed", http.StatusInternalServerError)
+			log.Printf("Image convert failed. %v\n", err)
+			return
+		}
+		defer buf.Reset()
+		w.Header().Set("Content-Type", "image/jpeg")
 	}
+	w.Header().Set("Content-Length", strconv.Itoa(buf.Len()))
 
 	if _, err := io.Copy(w, buf); err != nil {
 		// ignore already close client.

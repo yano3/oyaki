@@ -1,3 +1,3 @@
-module github.com/yano3/oyaki
+module github.com/pepabo/oyaki
 
 go 1.19
